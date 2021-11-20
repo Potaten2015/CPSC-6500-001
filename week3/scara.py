@@ -46,9 +46,9 @@ def create_rotation_matrix(rotation_axis, degree_angle):
         ])
     if 'y' in rotation_axis:
         rotation_matrix = np.array([
-            [np.cos(radian_angle), 0, -np.sin(radian_angle), 0],
+            [np.cos(radian_angle), 0, np.sin(radian_angle), 0],
             [0, 1, 0, 0],
-            [np.sin(radian_angle), 0, np.cos(radian_angle), 0],
+            [-np.sin(radian_angle), 0, np.cos(radian_angle), 0],
             [0, 0, 0, 1]
         ])
     if 'z' in rotation_axis:
@@ -173,5 +173,5 @@ class Scara:
 
 
 if __name__ == '__main__':
-    scara = Scara(end_effector_displacement=.75, rotation_angles=[30, 45, 10], effector_length=.25)
+    scara = Scara(end_effector_displacement=.5, rotation_angles=[90, -45, 0], effector_length=.25)
     scara.plot()
