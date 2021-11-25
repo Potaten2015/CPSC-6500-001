@@ -69,7 +69,7 @@ def create_displacement_vector(vector):
 
 def create_htm(orientation_matrix, displacement_vector, rotation_matrix=None):
     if rotation_matrix is not None:
-        htm = rotation_matrix @ orientation_matrix
+        htm = orientation_matrix @ rotation_matrix
     else:
         htm = orientation_matrix
     htm[:, 3] = displacement_vector
@@ -243,7 +243,6 @@ class Spherical:
         self.o_1_0 = create_orientation_matrix(['x', 'y', 'z'])
         self.o_2_1 = create_orientation_matrix(['x', 'z', '-y'])
         self.o_3_2 = create_orientation_matrix(['x', 'y', 'z'])
-        pprint(self.o_2_1)
         # Displacement vectors frame to frame
         self.d_1_0 = create_displacement_vector([0, 0, self.a1])
         self.d_2_1 = create_displacement_vector([self.a2, 0, 0])
@@ -251,8 +250,6 @@ class Spherical:
         # Joint rotation matrices
         self.r_1 = create_rotation_matrix('z', rotation_angles[0])
         self.r_2 = create_rotation_matrix('z', rotation_angles[1])
-        pprint(self.r_2)
-        self.r_3 = create_rotation_matrix('z', 0)
         # Link vectors relative to their original frames
         self.link_1 = np.array([[0], [0], [self.a1], [1]])
         self.link_2 = np.array([[self.a2], [0], [0], [1]])
@@ -261,11 +258,11 @@ class Spherical:
         # HTMs frame to frame
         self.htm_1_0 = create_htm(self.o_1_0, self.d_1_0, self.r_1)
         self.htm_2_1 = create_htm(self.o_2_1, self.d_2_1, self.r_2)
-        pprint(self.htm_2_1)
-        self.htm_3_2 = create_htm(self.o_3_2, self.d_3_2, self.r_3)
+        self.htm_3_2 = create_htm(self.o_3_2, self.d_3_2)
         # HTMs to Frame 0
         self.htm_2_0 = create_origin_htm([self.htm_1_0, self.htm_2_1])
         pprint(self.htm_2_0)
+        pprint(self.htm_2_0 @ np.array([[0], [0], [1], [1]]))
         self.htm_3_0 = create_origin_htm([self.htm_2_0, self.htm_3_2])
         # Links in Frame 0
         self.link_1_origin = self.link_1
@@ -356,7 +353,7 @@ class Spherical:
 
 if __name__ == '__main__':
 
-    scara = Scara(end_effector_displacement=.5, rotation_angles=[0, 0, 0], effector_length=.25)
-    scara.plot(axes=True, axes_length=.5)
-    spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[0, 15])
-    spherical.plot(axes=True, axes_length=.5)
+    scara = Scara(end_effector_displacement=.5, rotation_angles=[10, 10, 10], effector_length=.25)
+    scara.plot(axes=True, axes_length=.2)
+    spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[45, 135])
+    spherical.plot(axes=True, axes_length=.2)
