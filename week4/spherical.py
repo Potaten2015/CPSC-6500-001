@@ -35,7 +35,7 @@ def create_orientation_matrix(orientation_array):
 
 def create_rotation_matrix(rotation_axis, degree_angle):
     "Creates rotation matrix with 1 row and 1 column of padding for future HTM multiplication"
-    radian_angle: float = np.deg2rad(degree_angle)
+    radian_angle = np.deg2rad(degree_angle)
 
     if 'x' in rotation_axis:
         rotation_matrix = np.array([
@@ -85,7 +85,8 @@ def create_origin_htm(htms):
 
 
 class Scara:
-    def __init__(self, link_lengths=[1.0, 1.0, 1.0], effector_length=1.0, rotation_angles=[0.0, 0.0, 0.0], end_effector_displacement=0.0):
+    def __init__(self, link_lengths=[1.0, 1.0, 1.0], effector_length=1.0, rotation_angles=[0.0, 0.0, 0.0],
+                 end_effector_displacement=0.0):
         # Frame 0 origin
         self.origin = np.array([[0], [0], [0]])
         # Link lengths
@@ -136,7 +137,49 @@ class Scara:
         # Final point of end effector in Frame 0
         self.effector_origin = self.htm_4_0 @ self.effector
 
-    def plot(self, figure_name="Scara Plot"):
+        # Axes in origin frame
+        self.general_x_axis = np.array([[1], [0], [0], [1]])
+        self.general_y_axis = np.array([[0], [1], [0], [1]])
+        self.general_z_axis = np.array([[0], [0], [1], [1]])
+        self.general_origin = np.array([[0], [0], [0], [1]])
+        self.f_0_origin = self.general_origin
+        self.f_0_x = self.general_x_axis
+        self.f_0_y = self.general_y_axis
+        self.f_0_z = self.general_z_axis
+        self.f_1_origin = self.htm_1_0 @ self.general_origin
+        self.f_1_x = np.subtract(self.htm_1_0 @ self.general_x_axis, self.f_1_origin)
+        self.f_1_y = np.subtract(self.htm_1_0 @ self.general_y_axis, self.f_1_origin)
+        self.f_1_z = np.subtract(self.htm_1_0 @ self.general_z_axis, self.f_1_origin)
+        self.f_2_origin = self.htm_2_0 @ self.general_origin
+        self.f_2_x = np.subtract(self.htm_2_0 @ self.general_x_axis, self.f_2_origin)
+        self.f_2_y = np.subtract(self.htm_2_0 @ self.general_y_axis, self.f_2_origin)
+        self.f_2_z = np.subtract(self.htm_2_0 @ self.general_z_axis, self.f_2_origin)
+        self.f_3_origin = self.htm_3_0 @ self.general_origin
+        self.f_3_x = np.subtract(self.htm_3_0 @ self.general_x_axis, self.f_3_origin)
+        self.f_3_y = np.subtract(self.htm_3_0 @ self.general_y_axis, self.f_3_origin)
+        self.f_3_z = np.subtract(self.htm_3_0 @ self.general_z_axis, self.f_3_origin)
+        self.f_4_origin = self.htm_4_0 @ self.general_origin
+        self.f_4_x = np.subtract(self.htm_4_0 @ self.general_x_axis, self.f_4_origin)
+        self.f_4_y = np.subtract(self.htm_4_0 @ self.general_y_axis, self.f_4_origin)
+        self.f_4_z = np.subtract(self.htm_4_0 @ self.general_z_axis, self.f_4_origin)
+
+        self.x_axis_starts = [self.f_0_origin[0][0], self.f_1_origin[0][0], self.f_2_origin[0][0], self.f_3_origin[0][0], self.f_4_origin[0][0]]
+        self.y_axis_starts = [self.f_0_origin[1][0], self.f_1_origin[1][0], self.f_2_origin[1][0], self.f_3_origin[1][0], self.f_4_origin[1][0]]
+        self.z_axis_starts = [self.f_0_origin[2][0], self.f_1_origin[2][0], self.f_2_origin[2][0], self.f_3_origin[2][0], self.f_4_origin[2][0]]
+
+        self.x_axis_x_ends = [self.f_0_x[0][0], self.f_1_x[0][0], self.f_2_x[0][0], self.f_3_x[0][0], self.f_4_x[0][0]]
+        self.x_axis_y_ends = [self.f_0_x[1][0], self.f_1_x[1][0], self.f_2_x[1][0], self.f_3_x[1][0], self.f_4_x[1][0]]
+        self.x_axis_z_ends = [self.f_0_x[2][0], self.f_1_x[2][0], self.f_2_x[2][0], self.f_3_x[2][0], self.f_4_x[2][0]]
+
+        self.y_axis_x_ends = [self.f_0_y[0][0], self.f_1_y[0][0], self.f_2_y[0][0], self.f_3_y[0][0], self.f_4_y[0][0]]
+        self.y_axis_y_ends = [self.f_0_y[1][0], self.f_1_y[1][0], self.f_2_y[1][0], self.f_3_y[1][0], self.f_4_y[1][0]]
+        self.y_axis_z_ends = [self.f_0_y[2][0], self.f_1_y[2][0], self.f_2_y[2][0], self.f_3_y[2][0], self.f_4_y[2][0]]
+
+        self.z_axis_x_ends = [self.f_0_z[0][0], self.f_1_z[0][0], self.f_2_z[0][0], self.f_3_z[0][0], self.f_4_z[0][0]]
+        self.z_axis_y_ends = [self.f_0_z[1][0], self.f_1_z[1][0], self.f_2_z[1][0], self.f_3_z[1][0], self.f_4_z[1][0]]
+        self.z_axis_z_ends = [self.f_0_z[2][0], self.f_1_z[2][0], self.f_2_z[2][0], self.f_3_z[2][0], self.f_4_z[2][0]]
+
+    def plot(self, figure_name="Scara Plot", axes=False, axes_length=1):
         # Plot the location of robot with current configuration
         plt.figure(figure_name)
         ax = plt.axes(projection='3d')
@@ -168,6 +211,17 @@ class Scara:
                   np.array([self.extender_origin[2][0], self.effector_origin[2][0]]),
                   c='black',
                   marker="o")
+
+        if axes:
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.x_axis_x_ends, self.x_axis_y_ends, self.x_axis_z_ends,
+                      normalize=True, color='red', length=axes_length)
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.y_axis_x_ends, self.y_axis_y_ends, self.y_axis_z_ends,
+                      normalize=True, color='green', length=axes_length)
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.z_axis_x_ends, self.z_axis_y_ends, self.z_axis_z_ends,
+                      normalize=True, color='blue', length=axes_length)
 
         plt.show()
 
@@ -258,7 +312,7 @@ class Spherical:
         self.z_axis_y_ends = [self.f_0_z[1][0], self.f_1_z[1][0], self.f_2_z[1][0], self.f_3_z[1][0]]
         self.z_axis_z_ends = [self.f_0_z[2][0], self.f_1_z[2][0], self.f_2_z[2][0], self.f_3_z[2][0]]
 
-    def plot(self, figure_name="Spherical Plot", axes=False):
+    def plot(self, figure_name="Spherical Plot", axes=False, axes_length=1):
         # Plot the location of robot with current configuration
         plt.figure(figure_name)
         ax = plt.axes(projection='3d')
@@ -287,18 +341,22 @@ class Spherical:
                   c='gray')
 
         if axes:
-            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts, \
-                      self.x_axis_x_ends, self.x_axis_y_ends, self.x_axis_z_ends, normalize=True, color='red')
-            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts, \
-                      self.y_axis_x_ends, self.y_axis_y_ends, self.y_axis_z_ends, normalize=True, color='green')
-            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts, \
-                      self.z_axis_x_ends, self.z_axis_y_ends, self.z_axis_z_ends, normalize=True, color='blue')
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.x_axis_x_ends, self.x_axis_y_ends, self.x_axis_z_ends,
+                      normalize=True, color='red', length=axes_length)
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.y_axis_x_ends, self.y_axis_y_ends, self.y_axis_z_ends,
+                      normalize=True, color='green', length=axes_length)
+            ax.quiver(self.x_axis_starts, self.y_axis_starts, self.z_axis_starts,
+                      self.z_axis_x_ends, self.z_axis_y_ends, self.z_axis_z_ends,
+                      normalize=True, color='blue', length=axes_length)
 
         plt.show()
 
+
 if __name__ == '__main__':
 
-    # scara = Scara(end_effector_displacement=.5, rotation_angles=[90, -45, 0], effector_length=.25)
-    # scara.plot()
-    spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[45, 45])
-    spherical.plot(axes=True)
+    scara = Scara(end_effector_displacement=.5, rotation_angles=[0, 0, 0], effector_length=.25)
+    scara.plot(axes=True, axes_length=.5)
+    spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[0, 15])
+    spherical.plot(axes=True, axes_length=.5)
