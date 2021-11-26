@@ -237,8 +237,8 @@ class Spherical:
         # End effector length
         self.effector_length = effector_length
         # Joint rotations
-        self.theta_1 = np.deg2rad(rotation_angles[0])
-        self.theta_2 = np.deg2rad(rotation_angles[1])
+        self.theta_1 = rotation_angles[0]
+        self.theta_2 = rotation_angles[1]
         # Orientation matrices frame to frame
         self.o_1_0 = create_orientation_matrix(['x', 'y', 'z'])
         self.o_2_1 = create_orientation_matrix(['x', 'z', '-y'])
@@ -261,8 +261,6 @@ class Spherical:
         self.htm_3_2 = create_htm(self.o_3_2, self.d_3_2)
         # HTMs to Frame 0
         self.htm_2_0 = create_origin_htm([self.htm_1_0, self.htm_2_1])
-        pprint(self.htm_2_0)
-        pprint(self.htm_2_0 @ np.array([[0], [0], [1], [1]]))
         self.htm_3_0 = create_origin_htm([self.htm_2_0, self.htm_3_2])
         # Links in Frame 0
         self.link_1_origin = self.link_1
@@ -309,6 +307,13 @@ class Spherical:
         self.z_axis_y_ends = [self.f_0_z[1][0], self.f_1_z[1][0], self.f_2_z[1][0], self.f_3_z[1][0]]
         self.z_axis_z_ends = [self.f_0_z[2][0], self.f_1_z[2][0], self.f_2_z[2][0], self.f_3_z[2][0]]
 
+    # Finds xyx coordinates of end effector given theta 1 and 2 in radians
+    def find_xyz(self, theta_1, theta_2):
+        x = (self.a2 + self.a3 * np.cos(theta_2)) * np.cos(theta_1)
+        y = (self.a2 + self.a3 * np.cos(theta_2)) * np.sin(theta_1)
+        z = self.a1 + self.a3 * np.sin(theta_2)
+        return np.array([x, y, z])
+
     def plot(self, figure_name="Spherical Plot", axes=False, axes_length=1):
         # Plot the location of robot with current configuration
         plt.figure(figure_name)
@@ -350,10 +355,73 @@ class Spherical:
 
         plt.show()
 
+    def find_angles(self, coordinates=[2, 0, 1], print_info=False):
+        coordinates = np.array(coordinates).astype(float)
+        theta_2 = np.arcsin((coordinates[2] - self.a1) / self.a3)
+        theta_1 = np.arcsin(coordinates[1] / (self.a2 + self.a3 * np.cos(theta_2)))
+        xyz = self.find_xyz(theta_1, theta_2)
+
+        is_valid = np.all(coordinates == xyz)
+
+        if print_info:
+            if is_valid:
+                print(f'For coordinates {coordinates} theta_1 and theta_2 are ({np.round(np.rad2deg(theta_1), 2)}, {np.round(np.rad2deg(theta_2), 2)}) degrees')
+            else:
+                print(f'The given coordinates {coordinates} are not in the workspace given the current parameters.')
+
+        if is_valid:
+            return np.rad2deg(theta_1), np.rad2deg(theta_2)
+        else:
+            return None, None
+
+    def plot_workspace(self, figure_name="Spherical workspace", density=20):
+        angles = np.deg2rad(np.linspace(0, 359, density))
+        xs = []
+        ys = []
+        zs = []
+        for theta_1 in angles:
+            for theta_2 in angles:
+                xyz = self.find_xyz(theta_1, theta_2)
+                xs.append(xyz[0])
+                ys.append(xyz[1])
+                zs.append(xyz[2])
+        # Plot the location of robot with current configuration
+        plt.figure(figure_name)
+        ax = plt.axes(projection='3d')
+        ax.axes.set_xlim3d(left=-(self.a2 + self.a3 + 1), right=(self.a2 + self.a3 + 1))
+        ax.axes.set_ylim3d(bottom=-(self.a2 + self.a3 + 1), top=(self.a2 + self.a3 + 1))
+        ax.axes.set_zlim3d(bottom=-self.a1 - 1, top=self.a1 + 1)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.scatter(xs, ys, zs)
+
+        plt.show()
+
+    def update(self, link_lengths=None, effector_length=None, rotation_angles=None):
+        if not link_lengths:
+            a1 = self.a1
+            a2 = self.a2
+            a3 = self.a3
+        else:
+            a1 = link_lengths[0]
+            a2 = link_lengths[1]
+            a3 = link_lengths[2]
+        if not effector_length:
+            effector_length = self.effector_length
+        if not rotation_angles:
+            theta_1 = self.theta_1
+            theta_2 = self.theta_2
+
+        self.__init__(link_lengths=[a1, a2, a3], effector_length=effector_length, rotation_angles=[theta_1, theta_2])
+
+
 
 if __name__ == '__main__':
 
-    scara = Scara(end_effector_displacement=.5, rotation_angles=[10, 10, 10], effector_length=.25)
-    scara.plot(axes=True, axes_length=.2)
+    # scara = Scara(end_effector_displacement=.5, rotation_angles=[10, 10, 10], effector_length=.25)
+    # scara.plot(axes=True, axes_length=.2)
     spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[45, 135])
-    spherical.plot(axes=True, axes_length=.2)
+    # spherical.plot(axes=True, axes_length=.2)
+    pprint(spherical.find_angles(coordinates=[1, 1, 1], print_info=True))
+    spherical.plot_workspace(density=30)
