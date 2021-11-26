@@ -1,3 +1,23 @@
+"""
+Week 4 Assignment: Spherical Manipulator
+Author: Taten H. Knight
+Date: 2021.11.26
+
+Notes:
+    - Can use the 'plot' class method with 'axes=True' to visualize the orientation of the axes on scara and speherical
+    manipulators.
+    - 'Spherical.find_angles' takes in potential x,y,z coordinates and returns the corresponding theta_1, theta_2, ONLY
+    if the end-effector can reach the given x,y,z coordinates. This is accomplished by finding the angles via their
+    explicit equations, putting those angles into the explicit equation for x,y,z, and comparing the given x,y,z with
+    the equation results.
+    - 'Spherical.plot_workspace' plots the workspace of the current instance with a given density of angles (resultant
+    graph has '# of theta_1 angles' x '# of theta_2 angles' points, where '# theta_1 angles' = '# theta_2 angles' = density.
+    Angles are 'np.linspace(0, 359, density)'
+    - Future improvements include creating a base 'manipulator' model that generalizes methods for finding HTMs and
+    plotting the manipulator positions. Would also like to simulate manipulator motion.
+"""
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pprint import pprint
@@ -422,6 +442,6 @@ if __name__ == '__main__':
     # scara = Scara(end_effector_displacement=.5, rotation_angles=[10, 10, 10], effector_length=.25)
     # scara.plot(axes=True, axes_length=.2)
     spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[45, 135])
-    # spherical.plot(axes=True, axes_length=.2)
+    spherical.plot(axes=True, axes_length=.2)
     pprint(spherical.find_angles(coordinates=[1, 1, 1], print_info=True))
     spherical.plot_workspace(density=30)
