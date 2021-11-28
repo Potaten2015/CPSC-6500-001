@@ -183,9 +183,12 @@ class Scara:
         self.f_4_y = np.subtract(self.htm_4_0 @ self.general_y_axis, self.f_4_origin)
         self.f_4_z = np.subtract(self.htm_4_0 @ self.general_z_axis, self.f_4_origin)
 
-        self.x_axis_starts = [self.f_0_origin[0][0], self.f_1_origin[0][0], self.f_2_origin[0][0], self.f_3_origin[0][0], self.f_4_origin[0][0]]
-        self.y_axis_starts = [self.f_0_origin[1][0], self.f_1_origin[1][0], self.f_2_origin[1][0], self.f_3_origin[1][0], self.f_4_origin[1][0]]
-        self.z_axis_starts = [self.f_0_origin[2][0], self.f_1_origin[2][0], self.f_2_origin[2][0], self.f_3_origin[2][0], self.f_4_origin[2][0]]
+        self.x_axis_starts = [self.f_0_origin[0][0], self.f_1_origin[0][0],self.f_2_origin[0][0],
+                              self.f_3_origin[0][0], self.f_4_origin[0][0]]
+        self.y_axis_starts = [self.f_0_origin[1][0], self.f_1_origin[1][0], self.f_2_origin[1][0],
+                              self.f_3_origin[1][0], self.f_4_origin[1][0]]
+        self.z_axis_starts = [self.f_0_origin[2][0], self.f_1_origin[2][0], self.f_2_origin[2][0],
+                              self.f_3_origin[2][0], self.f_4_origin[2][0]]
 
         self.x_axis_x_ends = [self.f_0_x[0][0], self.f_1_x[0][0], self.f_2_x[0][0], self.f_3_x[0][0], self.f_4_x[0][0]]
         self.x_axis_y_ends = [self.f_0_x[1][0], self.f_1_x[1][0], self.f_2_x[1][0], self.f_3_x[1][0], self.f_4_x[1][0]]
@@ -311,9 +314,12 @@ class Spherical:
         self.f_3_y = np.subtract(self.htm_3_0 @ self.general_y_axis, self.f_3_origin)
         self.f_3_z = np.subtract(self.htm_3_0 @ self.general_z_axis, self.f_3_origin)
 
-        self.x_axis_starts = [self.f_0_origin[0][0], self.f_1_origin[0][0], self.f_2_origin[0][0], self.f_3_origin[0][0]]
-        self.y_axis_starts = [self.f_0_origin[1][0], self.f_1_origin[1][0], self.f_2_origin[1][0], self.f_3_origin[1][0]]
-        self.z_axis_starts = [self.f_0_origin[2][0], self.f_1_origin[2][0], self.f_2_origin[2][0], self.f_3_origin[2][0]]
+        self.x_axis_starts = [self.f_0_origin[0][0], self.f_1_origin[0][0], self.f_2_origin[0][0],
+                              self.f_3_origin[0][0]]
+        self.y_axis_starts = [self.f_0_origin[1][0], self.f_1_origin[1][0], self.f_2_origin[1][0],
+                              self.f_3_origin[1][0]]
+        self.z_axis_starts = [self.f_0_origin[2][0], self.f_1_origin[2][0], self.f_2_origin[2][0],
+                              self.f_3_origin[2][0]]
 
         self.x_axis_x_ends = [self.f_0_x[0][0], self.f_1_x[0][0], self.f_2_x[0][0], self.f_3_x[0][0]]
         self.x_axis_y_ends = [self.f_0_x[1][0], self.f_1_x[1][0], self.f_2_x[1][0], self.f_3_x[1][0]]
@@ -385,7 +391,8 @@ class Spherical:
 
         if print_info:
             if is_valid:
-                print(f'For coordinates {coordinates} theta_1 and theta_2 are ({np.round(np.rad2deg(theta_1), 2)}, {np.round(np.rad2deg(theta_2), 2)}) degrees')
+                print(f'For coordinates {coordinates} theta_1 and theta_2 are ({np.round(np.rad2deg(theta_1), 2)},'
+                      f'{np.round(np.rad2deg(theta_2), 2)}) degrees')
             else:
                 print(f'The given coordinates {coordinates} are not in the workspace given the current parameters.')
 
@@ -434,7 +441,6 @@ class Spherical:
             theta_2 = self.theta_2
 
         self.__init__(link_lengths=[a1, a2, a3], effector_length=effector_length, rotation_angles=[theta_1, theta_2])
-
 
 
 if __name__ == '__main__':
