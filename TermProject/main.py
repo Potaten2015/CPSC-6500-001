@@ -3,7 +3,6 @@ import upip
 import json
 import time
 import network
-from blink_light import blink_light
 import gc
 
 try:
@@ -14,9 +13,11 @@ except:
 
 HOST = ''
 PORT = 80
-MPU_9250_SCL = 17
-MPU_9250_SDA = 16
-
+MPU_SCL = Pin(22)
+MPU_SDA = Pin(21)
+POSITIVE_TEST = Pin(17, Pin.OUT, value=0)
+NEGATIVE_TEST = Pin(16, Pin.OUT, value=0)
+s = None
 
 print('Initializing...')
 
@@ -34,42 +35,77 @@ def connect_to_network():
 
 
 def create_mpu9250_sensor():
-    sensor_created = False
     print('Creating MPU9250 sensor object...')
-    i2c = SoftI2C(id=0, scl=Pin(MPU_9250_SCL), sda=Pin(MPU_9250_SDA))
+    i2c = SoftI2C(scl=MPU_SCL, sda=MPU_SDA)
 
-    while not sensor_created:
-        print('SCAN RESULTS: ', i2c.scan())
-        time.sleep(1)
-        try:
-            sensor_init = MPU9250(i2c=i2c)
-            sensor_created = True
-        except Exception as e:
-            print('Failed to create sensor...', str(e))
-    print('Successfully created MPU9250 sensor object...')
+    print('SCAN RESULTS: ', i2c.scan())
+    time.sleep(1)
+    try:
+        sensor_init = MPU6050(i2c)
+        print('Successfully created MPU9250 sensor object...')
+        POSITIVE_TEST.on()
+    except Exception as e:
+        sensor_init = None
+        print('Failed to create MPU9250 sensor object...', str(e))
+        NEGATIVE_TEST.on()
+    return sensor_init
+
+def create_mpu6050_sensor():
+    print('Creating MPU6050 sensor object...')
+    i2c = SoftI2C(scl=MPU_SCL, sda=MPU_SDA)
+
+    print('SCAN RESULTS: ', i2c.scan())
+    time.sleep(1)
+    try:
+        sensor_init = MPU6050(i2c)
+        print('Successfully created MPU6050 sensor object...')
+        POSITIVE_TEST.on()
+    except Exception as e:
+        sensor_init = None
+        print('Failed to create MPU6050 sensor object...', str(e))
+        NEGATIVE_TEST.on()
     return sensor_init
 
 
 def connect_socket(mpu_sensor):
+    global s
     print(f'Establishing socket connection with client...')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((HOST, PORT))
+    if s is None:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((HOST, PORT))
     s.listen(5)
+
+    def _await_connection():
+        while True:
+            conn_init, addr_init = s.accept()
+            if conn_init:
+                print('Connection established...')
+                return conn_init, addr_init
+
+    conn, addr = _await_connection()
     while True:
-        conn, addr = s.accept()
-        if conn:
-            print('Connection established...')
-            print(conn)
-            break
-    while True:
-        sensor_data = {
-            'acceleration': mpu_sensor.acceleration,
-            'gyro': mpu_sensor.gyro,
-            'magnetic': mpu_sensor.magnetic,
-            'temperature': mpu_sensor.temperature
-        }
-        # data = conn.recv(1024)
-        # decoded_data = data.decode('utf-8')
+        if mpu_sensor:
+            sensor_data = {
+                'acceleration': {
+                    'x': mpu_sensor.accel.x,
+                    'y': mpu_sensor.accel.y,
+                    'z': mpu_sensor.accel.z,
+                },
+                'gyro': {
+                    'x': mpu_sensor.gyro.x,
+                    'y': mpu_sensor.gyro.y,
+                    'z': mpu_sensor.gyro.z,
+                },
+                'temperature': mpu_sensor.temperature
+            }
+        else:
+            sensor_data = {
+                'acceleration': None,
+                'gyro': None,
+                'magnetic': None,
+                'temperature': None
+            }
+
         # decoded_data = decoded_data.split('-')
         # if len(decoded_data) < 2:
         #     conn.sendall(b'Invalid Input')
@@ -82,9 +118,20 @@ def connect_socket(mpu_sensor):
         #         print('...')
         #     if decoded_data == 'end':
         #         break
-        data = json.dumps(sensor_data, indent=2).encode('utf-8')
-        conn.sendall(data)
-        time.sleep(.5)
+        data = json.dumps(sensor_data).encode('utf-8') + b'//'
+        try:
+            print('Sending data to client...')
+            conn.sendall(data)
+            print('Sent data successfully...')
+            data = conn.recv(1024)
+            decoded_data = data.decode('utf-8')
+            print(decoded_data)
+        except Exception as e:
+            print('Failed to send data to client...', e)
+            break
+    connect_socket(mpu_sensor)
+
+
 
 
 def print_message(msg):
@@ -102,24 +149,28 @@ def control_pin(pin, command):
     if command == '0':
         pin = Pin(pin, Pin.OUT)
         pin.off()
-    if command == 'blink':
-        blink_light(pin, .5, .5)
 
 
 network_connected = connect_to_network()
 if network_connected:
+    # try:
+    #     print('Attempting to import MPU9250')
+    #     from mpu9250 import MPU9250
+    #     print('Import successful...')
+    # except Exception as e:
+    #     print('Unable to import MPU9250. Attempting install...')
+    #     upip.install('micropython-mpu9250')
+    #     print('Install successful...')
+    #     print('Attempting import MPU9250')
+    #     from mpu9250 import MPU9250
+    #     print('Import of MPU9250 successful...')
     try:
-        print('Attempting to import MPU9250')
-        from mpu9250 import MPU9250
+        print('Attempting to import imu for mpu6050...')
+        from imu import MPU6050
         print('Import successful...')
     except Exception as e:
-        print('Unable to import MPU9250. Attempting install...')
-        upip.install('micropython-mpu9250')
-        print('Install successful...')
-        print('Attempting import MPU9250')
-        from mpu9250 import MPU9250
-        print('Import of MPU9250 successful...')
-    sensor = create_mpu9250_sensor()
+        print('Unable to import MPU6050.')
+    sensor = create_mpu6050_sensor()
     connect_socket(sensor)
 else:
     print('Unable to connect to network')
