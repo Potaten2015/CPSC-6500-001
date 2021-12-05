@@ -57,14 +57,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         for data_object in decoded_split:
             try:
                 parsed_data = json.loads(data_object)
-                # clear_append_plot(parsed_data)
+                # print(parsed_data)
+                clear_append_plot(parsed_data)
             except Exception as e:
                 pass
         encoded = 'received'.encode('utf-8')
         s.sendall(encoded)
 
-    while True:
-        receive_data()
+    # while True:
+    #     receive_data()
 
-    # ani = FuncAnimation(charts, receive_data)
-    # plt.show()
+    ani = FuncAnimation(charts, receive_data)
+    plt.show()

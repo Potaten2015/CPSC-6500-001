@@ -126,6 +126,7 @@ def connect_socket(mpu_sensor):
             data = conn.recv(1024)
             decoded_data = data.decode('utf-8')
             print(decoded_data)
+            time.sleep(.4)
         except Exception as e:
             print('Failed to send data to client...', e)
             break
