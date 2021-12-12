@@ -27,8 +27,8 @@ outgoing = dict()
 previous_command = {
     "l_p": 100,
     "r_p": 100,
-    "l_s": 100,
-    "r_s": 100
+    "l_s": 0,
+    "r_s": 0
 }
 
 
@@ -47,20 +47,22 @@ command_thread.start()
 def main():
     global previous_command
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        connecting = True
-        while connecting:
-            print('Attempting to connect...')
-            try:
-                s.setblocking(True)
-                s.connect((HOST, PORT))
-                connecting = False
-                print('Connected...')
-            except Exception as e:
-                print('Connecting...', str(e))
 
+        s.setblocking(True)
+
+        def _connect():
+            connecting = True
+            while connecting:
+                try:
+                    s.connect((HOST, PORT))
+                    connecting = False
+                    print('Connected...')
+                except Exception as e:
+                    print('Connecting...', str(e))
+        _connect()
         s.setblocking(False)
-
-        def receive_data(i=0):
+        while True:
+            time.sleep(.001)
             global previous_command
             global outgoing
             try:
@@ -90,11 +92,8 @@ def main():
             try:
                 s.sendall(outgoing_encoded + b'//')
             except Exception as E:
-                pass
-
-        while True:
-            time.sleep(.001)
-            receive_data()
+                break
+    main()
 
 
 main()

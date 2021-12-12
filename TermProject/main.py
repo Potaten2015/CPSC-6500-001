@@ -33,9 +33,9 @@ HIGH_DUTY = 1023
 LEFT_MOTOR.duty(HIGH_DUTY)
 RIGHT_MOTOR.duty(HIGH_DUTY)
 
-# Servo-motor pins
-LEFT_SERVO = Pin(25, Pin.OUT, value=0)
-RIGHT_SERVO = Pin(26, Pin.OUT, value=0)
+# Prop-motor pins
+LEFT_SERVO = PWM(Pin(25), PWM_PIN_FREQUENCY)
+RIGHT_SERVO = PWM(Pin(26), PWM_PIN_FREQUENCY)
 
 # Socket Variable
 s = None
@@ -103,25 +103,30 @@ def create_mpu6050_sensor():
 
 
 def control_right_prop(value):
-    translated = translate(0, 100, LOW_DUTY, HIGH_DUTY, value)
-    RIGHT_MOTOR.duty(int(translated))
+    translated = translate(0, 100, 5, 10, value)
+    bit_value = translated * 1023 / 100
+    RIGHT_MOTOR.duty(int(bit_value))
 
 
 def control_left_prop(value):
-    translated = translate(0, 100, LOW_DUTY, HIGH_DUTY, value)
-    LEFT_MOTOR.duty(int(translated))
-
-
-def control_left_servo(value):
-    pass
+    translated = translate(0, 100, 5, 10, value)
+    bit_value = translated * 1023 / 100
+    LEFT_MOTOR.duty(int(bit_value))
 
 
 def control_right_servo(value):
-    pass
+    translated = translate(0, 180, 5, 10, value)
+    bit_value = translated * 1023 / 100
+    RIGHT_SERVO.duty(int(bit_value))
+
+
+def control_left_servo(value):
+    translated = translate(0, 180, 10, 5, value)
+    bit_value = translated * 1023 / 100
+    LEFT_SERVO.duty(int(bit_value))
 
 
 def remote_control(control_object):
-    # print('Control...')
     control_functions = {
         'l_p': control_left_prop,
         'r_p': control_right_prop,
@@ -189,13 +194,6 @@ def connect_socket(mpu_sensor):
             # print('')
         except Exception as e:
             # print('Failed to send data to client...', e)
-            emergency_control = {
-                "l_p": 0,
-                "r_p": 0,
-                "l_s": 0,
-                "r_s": 0
-            }
-            remote_control(emergency_control)
             break
         try:
             incoming = conn.recv(1024)
@@ -209,7 +207,13 @@ def connect_socket(mpu_sensor):
                 remote_control(parsed_data)
             except Exception as E:
                 pass
-
+    emergency_control = {
+        "l_p": 0,
+        "r_p": 0,
+        "l_s": 0,
+        "r_s": 0
+    }
+    remote_control(emergency_control)
     connect_socket(mpu_sensor)
 
 
