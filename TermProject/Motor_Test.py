@@ -12,9 +12,7 @@ motor_pin_1 = 2
 board.digital[motor_pin_1].mode = SERVO
 
 
-def translate(original_low, original_high, new_low, new_high, original_value):
-    translated_value = (((original_value - original_low) / (original_high - original_low)) * (new_high - new_low)) + new_low
-    return translated_value
+
 
 
 def change_speed(pin, angle):

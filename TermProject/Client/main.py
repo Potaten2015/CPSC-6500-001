@@ -4,6 +4,8 @@ from pprint import pprint
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import sys
+import threading
+import time
 
 HOST = '192.168.0.22'
 PORT = 80
@@ -20,52 +22,79 @@ charts = plt.figure(figsize=(12, 6))
 ax = plt.subplot(121)
 ax1 = plt.subplot(122)
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    connecting = True
-    while connecting:
-        print('Attempting to connect...')
-        try:
-            s.connect((HOST, PORT))
-            connecting = False
-            print('Connected...')
-        except Exception as e:
-            print('Connecting...', str(e))
+outgoing = dict()
 
-    def clear_append_plot(the_data):
-        ax.cla()
-        ax1.cla()
+previous_command = {
+    "l_p": 100,
+    "r_p": 100,
+    "l_s": 100,
+    "r_s": 100
+}
 
-        accel_x.append(the_data['acceleration']['x'])
-        accel_y.append(the_data['acceleration']['y'])
-        accel_z.append(the_data['acceleration']['z'])
-        gyro_x.append(the_data['gyro']['x'])
-        gyro_y.append(the_data['gyro']['y'])
-        gyro_z.append(the_data['gyro']['z'])
 
-        ax.plot(accel_x)
-        ax.plot(accel_y)
-        ax.plot(accel_z)
+def get_command_inputs():
+    global outgoing
+    prompts = ['l_p', 'r_p', 'l_s', 'r_s']
+    for prompt in prompts:
+        value = input(prompt + '\n')
+        outgoing[prompt] = int(value)
 
-        ax1.plot(gyro_x)
-        ax1.plot(gyro_y)
-        ax1.plot(gyro_z)
 
-    def receive_data(i=0):
-        data = s.recv(4096)
-        decoded_data = data.decode('utf-8')
-        decoded_split = decoded_data.split('//')
-        for data_object in decoded_split:
+command_thread = threading.Thread(target=get_command_inputs)
+command_thread.start()
+
+
+def main():
+    global previous_command
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        connecting = True
+        while connecting:
+            print('Attempting to connect...')
             try:
-                parsed_data = json.loads(data_object)
-                # print(parsed_data)
-                clear_append_plot(parsed_data)
+                s.setblocking(True)
+                s.connect((HOST, PORT))
+                connecting = False
+                print('Connected...')
             except Exception as e:
+                print('Connecting...', str(e))
+
+        s.setblocking(False)
+
+        def receive_data(i=0):
+            global previous_command
+            global outgoing
+            try:
+                data = s.recv(4096)
+                decoded_data = data.decode('utf-8')
+                decoded_split = decoded_data.split('//')
+            except:
+                decoded_split = ['']
+            for data_object in decoded_split:
+                try:
+                    parsed_data = json.loads(data_object)
+                except Exception as E:
+                    pass
+            if len(outgoing.items()) == 4:
+                print('Sending commands...')
+                previous_command = outgoing
+                outgoing_json = json.dumps(outgoing)
+                outgoing_encoded = outgoing_json.encode('utf-8')
+                print('Successfully sent commands...')
+                outgoing = dict()
+                command_thread = threading.Thread(target=get_command_inputs)
+                command_thread.start()
+                pprint(previous_command)
+            else:
+                outgoing_json = json.dumps(previous_command)
+                outgoing_encoded = outgoing_json.encode('utf-8')
+            try:
+                s.sendall(outgoing_encoded + b'//')
+            except Exception as E:
                 pass
-        encoded = 'received'.encode('utf-8')
-        s.sendall(encoded)
 
-    # while True:
-    #     receive_data()
+        while True:
+            time.sleep(.001)
+            receive_data()
 
-    ani = FuncAnimation(charts, receive_data)
-    plt.show()
+
+main()
