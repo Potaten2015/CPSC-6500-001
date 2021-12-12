@@ -143,6 +143,9 @@ def remote_control(control_object):
             print(str(E))
 
 
+remote_control(incoming_decoded)
+
+
 def connect_socket(mpu_sensor):
     global incoming_decoded
     global s
