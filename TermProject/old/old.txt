@@ -1,0 +1,11 @@
+    # try:
+    #     print('Attempting to import MPU9250')
+    #     from mpu9250 import MPU9250
+    #     print('Import successful...')
+    # except Exception as e:
+    #     print('Unable to import MPU9250. Attempting install...')
+    #     upip.install('micropython-mpu9250')
+    #     print('Install successful...')
+    #     print('Attempting import MPU9250')
+    #     from mpu9250 import MPU9250
+    #     print('Import of MPU9250 successful...')
