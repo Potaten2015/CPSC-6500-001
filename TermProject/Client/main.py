@@ -25,8 +25,8 @@ ax1 = plt.subplot(122)
 outgoing = dict()
 
 previous_command = {
-    "l_p": 100,
-    "r_p": 100,
+    "l_p": 0,
+    "r_p": 0,
     "l_s": 0,
     "r_s": 0
 }

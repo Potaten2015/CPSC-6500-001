@@ -49,8 +49,8 @@ def translate(original_low, original_high, new_low, new_high, original_value):
 
 # Template for incoming data
 incoming_decoded = {
-    "l_p": 100,
-    "r_p": 100,
+    "l_p": 0,
+    "r_p": 0,
     "l_s": 0,
     "r_s": 0
 }
