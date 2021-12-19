@@ -21,6 +21,7 @@ Notes:
 import numpy as np
 import matplotlib.pyplot as plt
 from pprint import pprint
+from matplotlib import cm
 
 
 def create_orientation_matrix(orientation_array):
@@ -401,17 +402,12 @@ class Spherical:
         else:
             return None, None
 
-    def plot_workspace(self, figure_name="Spherical workspace", density=20):
-        angles = np.deg2rad(np.linspace(0, 359, density))
-        xs = []
-        ys = []
-        zs = []
-        for theta_1 in angles:
-            for theta_2 in angles:
-                xyz = self.find_xyz(theta_1, theta_2)
-                xs.append(xyz[0])
-                ys.append(xyz[1])
-                zs.append(xyz[2])
+    def plot_workspace(self, figure_name="Spherical workspace"):
+        theta_1 = np.deg2rad(np.linspace(0, 360, 30))
+        theta_2 = theta_1
+        theta_1, theta_2 = np.meshgrid(theta_1, theta_2)
+        [xs, ys, zs] = self.find_xyz(theta_1, theta_2)
+
         # Plot the location of robot with current configuration
         plt.figure(figure_name)
         ax = plt.axes(projection='3d')
@@ -421,7 +417,7 @@ class Spherical:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.scatter(xs, ys, zs)
+        ax.plot_surface(xs, ys, zs, cmap=cm.coolwarm)
 
         plt.show()
 
@@ -448,6 +444,6 @@ if __name__ == '__main__':
     # scara = Scara(end_effector_displacement=.5, rotation_angles=[10, 10, 10], effector_length=.25)
     # scara.plot(axes=True, axes_length=.2)
     spherical = Spherical(link_lengths=[1, 1, 1], effector_length=.5, rotation_angles=[45, 135])
-    spherical.plot(axes=True, axes_length=.2)
+    # spherical.plot(axes=True, axes_length=.2)
     pprint(spherical.find_angles(coordinates=[1, 1, 1], print_info=True))
-    spherical.plot_workspace(density=30)
+    spherical.plot_workspace()
