@@ -1,3 +1,16 @@
+"""
+Week 6 Assignment: Jacobian Matrix using DHT
+Author: Taten H. Knight
+Date: 2021.12.18
+
+Notes:
+    - This program calculates the symbolic representation of the jacobian matrix for a spherical manipulator by taking
+    advantage of the sympy and numppy packages
+    - We can substitute out the symbols for values and find the solution to the matrices using the sub_and_solve
+    function
+"""
+
+
 import numpy as np
 from sympy import Symbol, sin, pprint, cos, Float, log, Matrix, shape, simplify
 
@@ -11,9 +24,10 @@ d1 = Symbol('d_1')
 
 
 def symbolic_dh_table():
-    dh_row_1 = np.array([theta1 - 90, -90, 0, 0])
-    dh_row_2 = np.array([0, 0, 0, d1 + a3])
-    dh_table = np.array([dh_row_1, dh_row_2])
+    dh_row_1 = np.array([theta1 - 90, -90, 0, a1])
+    dh_row_2 = np.array([0, 0, 0, a2])
+    dh_row_3 = np.array([0, 0, 0, d1 + a3])
+    dh_table = np.array([dh_row_1, dh_row_2, dh_row_3])
     return dh_table
 
 
@@ -41,7 +55,7 @@ def symbolic_origin_htms(frame_htms):
 
 def symbolic_jacobians(origin_htms):
     js = []
-    for i in range(1, 3):
+    for i in range(1, len(origin_htms) + 1):
         # print('\n\n\n')
         # pprint(simplify(origin_htms[i - 1][:, 3]))
         if i == 1:
@@ -49,7 +63,7 @@ def symbolic_jacobians(origin_htms):
             o_minus = np.array([[0], [0], [0]])
         else:
             z_minus = origin_htms[i - 1][:3, :3] @ np.array([[0], [0], [1]])
-            o_minus = (origin_htms[i - 2] @ np.array([[0], [0], [0], [1]]))[0:3]
+            o_minus = (origin_htms[i - 1] @ np.array([[0], [0], [0], [1]]))[0:3]
         on = (origin_htms[-1] @ np.array([[0], [0], [0], [1]]))[0:3]
         for j, value in enumerate(z_minus):
             z_minus[j] = simplify(value)
@@ -73,6 +87,19 @@ def symbolic_jacobians(origin_htms):
     return js
 
 
+def sub_and_solve(jacobians, d_1=1, a_1=1, a_2=1, a_3=1, theta_1=45):
+    theta_1 = np.deg2rad(theta_1)
+    jacobians_copy = jacobians.copy()
+    for i, jacobian in enumerate(jacobians_copy):
+        for j, row in enumerate(jacobian):
+            for k, item in enumerate(row):
+                try:
+                    jacobians_copy[i][j][k] = ((jacobians[i][j][k]).subs([(d1, d_1), (a1, a_1), (a2, a_2), (a3, a_3), (theta1, theta_1)])).evalf()
+                except:
+                    pass
+    return jacobians_copy
+
+
 def run():
     symbolic_dh = symbolic_dh_table()
     # pprint(symbolic_dh)
@@ -91,7 +118,8 @@ def run():
     for i, jacobian in enumerate(jacobians):
         print(f'\nJ_{i+1}')
         pprint(jacobian)
-
+    solved = sub_and_solve(jacobians)
+    pprint(solved)
 
 if __name__ == '__main__':
     run()
