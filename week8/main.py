@@ -1,63 +1,64 @@
+"""
+Week 8 Assignment: Re-write
+Author: Taten H. Knight
+Date: 2021.12.19
+
+Notes:
+    - Definitely struggled to solve for the final joint variables using inverse kinematics. The first half made sense
+    but the wrist I struggled with. Sorry, thank you for a good course. Going to keep the material from Github for
+    the future
+"""
+
+
 import numpy as np
 import numpy.linalg as la
 from pprint import pprint
+import sympy as sym
+from sympy import sin as s, cos as c, pprint as pp
+
+
+a1 = sym.Symbol('a_1')
+a2 = sym.Symbol('a_2')
+a3 = sym.Symbol('a_3')
+a4 = sym.Symbol('a_4')
+a5 = sym.Symbol('a_5')
+a6 = sym.Symbol('a_6')
+a7 = sym.Symbol('a_7')
+t2 = sym.Symbol('theta_2')
+t4 = sym.Symbol('theta_4')
+t5 = sym.Symbol('theta_5')
+t6 = sym.Symbol('theta_6')
+d1 = sym.Symbol('d_1')
+d3 = sym.Symbol('d_3')
 
 
 def run():
-    r_3_0 = np.array([
-        [0.25, -0.71, 0.66],
-        [0.48, -0.86, -0.17],
-        [0.88, 0.48, 0.03]
+    # HTMs
+    h_3_0 = np.array([
+        [-s(t2), 0, c(t2), (a3 + a4 + d3) * c(t2)],
+        [c(t2), 0, s(t2), (a3 + a4 + d3) * s(t2)],
+        [0, 1, 0, a1 + a2 + d1],
+        [0, 0, 0, 1]
     ])
 
-    r_6_0 = np.array([
-        [0.04, 0.93, 0.29],
-        [-0.65, 0.45, 0.53],
-        [0.45, -0.47, 0.83]
+    h_6_3 = np.array([
+        [-c(t4)*s(t5)*c(t6)+s(t4)*s(t6), c(t4)*s(t5)*s(t6)+s(t4)*c(t6), c(t4)*c(t5), (a6+a7)*c(t5)*c(t5)],
+        [-s(t4)*s(t5)*c(t6)-c(t4)*s(t6), s(t4)*s(t5)*s(t6)+c(t4)*c(t6), s(t4)*c(t5), (a6+a7)*s(t5)*c(t5)],
+        [c(t5)*c(t6), -c(t5)*s(t6), s(t5), (a6+a7)*s(t5)+a5],
+        [0, 0, 0, 1]
     ])
+    h_6_0 = h_3_0 @ h_6_3
 
-    r_6_3 = la.inv(r_3_0) @ r_6_0
-
-    pprint(r_6_3)
-
-
-def run2():
-    r_3_0 = np.array([
-        [0.33, -0.91, 0.24],
-        [0.93, 0.24, -0.29],
-        [0.19, 0.38, 0.90]
-    ])
-
-    r_6_0 = np.array([
-        [-0.63, 0.29, 0.56],
-        [0.65, -0.60, 0.64],
-        [0.64, 0.76, 0.13]
-    ])
-
-    r_6_3 = la.inv(r_3_0) @ r_6_0
-
-    pprint(r_6_3)
+    # Rotation Matrices
+    r_3_0 = (h_3_0 @ np.array([[0], [0], [1]]))[0:3]
+    r_6_3 = (h_6_3 @ np.array([[0], [0], [1]]))[0:3]
+    r_6_0 = (h_6_0 @ np.array([[0], [0], [1]]))[0:3]
 
 
-def run3():
-    r_3_0 = np.array([
-        [0.42, -0.24, 0.87],
-        [0.88, -0.47, -0.03],
-        [0.47, 0.88, 0.00]
-    ])
+def cylinder_joints(x, y, z, a1, a2, a3, a4):
+    pass
 
-    r_6_0 = np.array([
-        [0.35, 0.55, 0.61],
-        [0.01, -0.47, 0.73],
-        [0.98, -0.52, -0.11]
-    ])
-
-    r_6_3 = la.inv(r_3_0) @ r_6_0
-
-    pprint(r_6_3)
 
 
 if __name__ == '__main__':
-    # run()
-    # run2()
-    run3()
+    run()
